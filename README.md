@@ -34,7 +34,7 @@ AAAAフィルターを実装した段階で、乗り換えを決めた。
 
 そこから、「unbound-control lookup」の出力を元に、
 python APIの拡張を開発した：
-https://www.unbound.net/pipermail/unbound-users/2015-January/003684.html
+https://www.unbound.net/pipermail/unbound-users/2015-January/003680.html
 
 動作試験の末、リアルタイムで攻撃を迎撃し、中和するシステムの開発に成功していた：
 https://www.unbound.net/pipermail/unbound-users/2015-January/003684.html
