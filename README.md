@@ -135,9 +135,9 @@ server:
 python:
     python-script: "/etc/unbound/geigeki.py"
 ```
-    1. `module-config` must include `python` before `iterator`.
-       `module-config`は、どうしても`iterator`の前に`python`を指定しなければならない。
-    2. Add a `python:` section and a `python-script` parameter as described above. Warning: This means Geigeki will not work if you already need another python script.
-       設定に`python:`セクションを足して、`python-script`のパラメーターを上記の通りに追加する。注意：Geigekiは、他のpythonスクリプトと同時に設定出来ない。
+   1. `module-config` must include `python` before `iterator`.
+      `module-config`は、どうしても`iterator`の前に`python`を指定しなければならない。
+   2. Add a `python:` section and a `python-script` parameter as described above. Warning: This means Geigeki will not work if you already need another python script.
+      設定に`python:`セクションを足して、`python-script`のパラメーターを上記の通りに追加する。注意：Geigekiは、他のpythonスクリプトと同時に設定出来ない。
 3. Restart unbound.
 unboundを再起動する
