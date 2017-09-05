@@ -123,9 +123,9 @@ ISPの場合、自社サブネットのための処理例外を定義出来る�
 
 ## How to use / 利用方法
 
-1. Install the "geigeki.py" file somewhere (For instance, `/etc/unbound/geigeki.py`)
+1. Install the "geigeki.py" file somewhere (For instance, `/etc/unbound/geigeki.py`)  
 どこかに「geigeki.py」を配置する（例：`/etc/unbound/geigeki.py`）
-2. Modify your unbound configuration in the following fashion :
+2. Modify your unbound configuration in the following fashion :  
 unbound設定を下記の様に変更する：
 ```
 server:
@@ -135,9 +135,9 @@ server:
 python:
     python-script: "/etc/unbound/geigeki.py"
 ```
-   1. `module-config` must include `python` before `iterator`.
-      `module-config`は、どうしても`iterator`の前に`python`を指定しなければならない。
-   2. Add a `python:` section and a `python-script` parameter as described above. Warning: This means Geigeki will not work if you already need another python script.
-      設定に`python:`セクションを足して、`python-script`のパラメーターを上記の通りに追加する。注意：Geigekiは、他のpythonスクリプトと同時に設定出来ない。
-3. Restart unbound.
+3. `module-config` must include `python` before `iterator`.  
+`module-config`は、どうしても`iterator`の前に`python`を指定しなければならない。
+4. Add a `python:` section and a `python-script` parameter as described above. Warning: This means Geigeki will not work if you already need another python script.  
+ 設定に`python:`セクションを足して、`python-script`のパラメーターを上記の通りに追加する。注意：Geigekiは、他のpythonスクリプトと同時に設定出来ない。
+3. Restart unbound.  
 unboundを再起動する
