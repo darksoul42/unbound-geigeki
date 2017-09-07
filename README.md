@@ -185,7 +185,7 @@ unboundの通常のログに含まれるGeigekiの追加ログから、特定の
 
 ### How to declare IPv6 prefixes for aggregation / 集約するIPv6プレフィックスの定義の仕方
 
-In `geigeki.py`, a dictionary of high-level IPv6 prefixes and the length of prefixes given out to users is declared in the following way.
+In `geigeki.py`, a dictionary of high-level IPv6 prefixes and the length of prefixes given out to users is declared in the following way.  
 `geigeki.py`で、高位のIPv6プレフィックスと、ユーザーに割り振られたプレフィックス長さの関連付けは下記の様に定義されている：
 ```
 IPV6_PREFIXES_MAP = dict([
