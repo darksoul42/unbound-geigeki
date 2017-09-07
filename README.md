@@ -301,12 +301,12 @@ The expressions for `LOOKUP stats` and `LOOKUP result` are also static to help d
 
 The `LOOKUP stats` explain what the client has been doing recently. In this example :
 - The client has sent 5002 normal queries, 631 of which ended in NXDOMAIN, no ANY queries, and did not receive a single RRSET or a single CNAME.
--- None of the client standalone thresholds are breached
+  - None of the client standalone thresholds are breached
 - The domain has received 5000 normal queries, 629 of which ended in NXDOMAIN, no ANY queries, and no RRSET or CNAMEs have been received for it.
--- The 629 NXDOMAIN errors are above the threhold of 600, which flags the domain as being exposed to a DDoS
+  - The 629 NXDOMAIN errors are above the threhold of 600, which flags the domain as being exposed to a DDoS
 - The client has sent 5000 normal queries to this domain, 629 of which ended in NXDOMAIN, no ANY queries, and did not receive a single RRSET or a single CNAME.
--- The 629 NXDOMAIN errors are above the threshold of 3, which flags the client as maybe participating in a DDoS on this domain -> Reject
--- The 629 NXDOMAIN errors are above the threshold of 450, which flags the client as explicitely attacking the domain -> Reject
+  - The 629 NXDOMAIN errors are above the threshold of 3, which flags the client as maybe participating in a DDoS on this domain -> Reject
+  - The 629 NXDOMAIN errors are above the threshold of 450, which flags the client as explicitely attacking the domain -> Reject
 
 The `LOOKUP result` indicates the four decision factors we use :
 - Whether the client is attacking a domain on his own -> if True then this client querying this domain will be rejected
@@ -316,12 +316,12 @@ The `LOOKUP result` indicates the four decision factors we use :
 
 `LOOKUP stats`で、クライアントの最近の挙動が説明される。今回の事例：
 - 当該クライアントは5002件の通常クエリを投げて、そのうち631がNXDOMAINで終わった。ANYクエリを送らなかったが、RRSETやCNAMEを1個ももらわなかった。
--- いずれの閾値も超えられてない
+  - いずれの閾値も超えられてない
 - 当該ドメインは5000件の通常クエリを受け、そのうち629件がNXDOMAINで終わった。ANYクエリを受けなかったが、RRSETやCNAMEは1個も観測されなかった。
--- NXDOMAINエラー629件で、600の閾値を超え、ドメインが「DDoSを受けている」判定になる
+  - NXDOMAINエラー629件で、600の閾値を超え、ドメインが「DDoSを受けている」判定になる
 - 当該クライアントは、当該ドメインに対し、5000件の通常クエリを投げて、そのうち629件がNXDOMAINで終わった。ANYクエリを送らなかったが、RRSETやCNAMEを1個ももらわなかった。
--- NXDOMAINエラー629件で、3の閾値を超え、クライアントに「DDoSに加担している疑惑」フラグが立つ → その時点で拒否判定される
--- NXDOMAINエラー629件で、450の閾値を超え、クライアントが「単独攻撃を仕掛けている」フラグが立つ → その時点で拒否判定される
+  - NXDOMAINエラー629件で、3の閾値を超え、クライアントに「DDoSに加担している疑惑」フラグが立つ → その時点で拒否判定される
+  - NXDOMAINエラー629件で、450の閾値を超え、クライアントが「単独攻撃を仕掛けている」フラグが立つ → その時点で拒否判定される
 
 `LOOKUP result`は、判断材料を説明する：
 - 当該クライアントは単独攻撃をしているのか → Trueの場合、当該クライアントの当該ドメインへのクエリが拒否される
