@@ -52,6 +52,7 @@ This module operates on non-cached DNS queries, and will maintain in-memory tabl
 本モジュールは、キャッシュされていないクエリに対して実行され、下記のメモリ内のテーブルを管理する：
 - クライアントのアドレス
 - クエリ対象の委任ポイント、以後は「ドメイン」と称す
+- クライアントとドメインのペア
 
 ### Tracked statistics / 監視している統計
 
