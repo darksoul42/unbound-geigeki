@@ -204,12 +204,12 @@ By default, all IPv6 addresses are aggregated under /64 prefixes.
 
 ## Logs / ログ
 
-Geigeki will produce extra logs to make explicit what it is doing.
+Geigeki will produce extra logs to make explicit what it is doing.  
 Geigekiは、挙動を明らかにするために、追加のログを出力する。
 
 ### Logs on intialization of Geigeki / Geigeki初期化の際に出るログ
 
-Here is what Unbound and Geigeki will output when starting up.
+Here is what Unbound and Geigeki will output when starting up.  
 UnboundとGeigekiが起動時に表示するログ：
 ```
 notice: init module 0: python
@@ -240,17 +240,17 @@ notice: init module 1: iterator
 info: start of service (unbound 1.4.22).
 ```
 
-Thresholds match the counters mentioned in "Tracked statistics".
-Most of these can be configured by editing `geigeki.py`.
-上記のTHRESHOLD(閾値)は、「監視している統計」で説明している内容である。
+Thresholds match the counters mentioned in "Tracked statistics".  
+Most of these can be configured by editing `geigeki.py`.  
+上記のTHRESHOLD(閾値)は、「監視している統計」で説明している内容である。  
 `geigeki.py`を編集して、それらの設定項目を操作出来る。
 
-All of Geigeki related logs are prefixed with the keyword `ASN-DDoS-geigeki` so that it is easier to sort out.
+All of Geigeki related logs are prefixed with the keyword `ASN-DDoS-geigeki` so that it is easier to sort out.  
 整理しやすくするために、すべてのログに`ASN-DDoS-geigeki`というキーワードをつけている。
 
 ### Logs produced for every query processed by Geigeki / Geigekiがクエリ処理する際に出るログ
 
-All query logs will be tagged with `(DEBUG)` if DEBUG is set to True.
+All query logs will be tagged with `(DEBUG)` if DEBUG is set to True.  
 DEBUGがTrueな場合、クエリ関連のログはすべて`(DEBUG)`でタグ付けられる。
 
 #### Allowed queries / 許可されたクエリ
@@ -260,10 +260,10 @@ info: <CLIENT> <HOST.DOMAIN.TLD> A IN
 info: ASN-DDoS-geigeki: allowed <CLIENT> <HOST.DOMAIN.TLD> (<DOMAIN.TLD>) A IN
 ```
 
-This should be the most common message someone sees.
+This should be the most common message someone sees.  
 これは一番一般的なメッセージである。
 
-In DEBUG mode, it will be displayed like this.
+In DEBUG mode, it will be displayed like this.  
 DEBUGモードでは、下記の表示になる：
 ```
 info: <CLIENT> <HOST.DOMAIN.TLD> A IN
@@ -277,10 +277,10 @@ info: <CLIENT> <HOST.DOMAIN.TLD> A IN
 info: ASN-DDoS-geigeki: rejected <CLIENT> <HOST.DOMAIN.TLD> (<DOMAIN.TLD>) A IN
 ```
 
-This is what is displayed when Geigeki decided to reject a query.
+This is what is displayed when Geigeki decided to reject a query.  
 Geigekiが拒否判定を出した際、上記の表示になる。
 
-In DEBUG mode, it will be displayed like this.
+In DEBUG mode, it will be displayed like this.  
 DEBUGモードでは、下記の表示になる：
 ```
 info: <CLIENT> <HOST.DOMAIN.TLD> A IN
@@ -293,9 +293,9 @@ info: ASN-DDoS-geigeki: LOOKUP stats on domain <DOMAIN.TLD> by <CLIENT> (domain)
 info: ASN-DDoS-geigeki: LOOKUP result on domain <DOMAIN.TLD> by <CLIENT>: single_attack_on_domain_by_client=True single_attack_by_client=False is_domain_ddosed=True is_client_member_of_ddos=True
 ```
 
-These logs contain the keyword `LOOKUP` to make it easy to locate statistics for a rejection in the logs.
-The expressions for `LOOKUP stats` and `LOOKUP result` are also static to help distinction and further filtering by domain or client.
-拒否判定の際の統計をログからより簡単に抽出出来るために、`LOOKUP`という単語を含んでいる。
+These logs contain the keyword `LOOKUP` to make it easy to locate statistics for a rejection in the logs.  
+The expressions for `LOOKUP stats` and `LOOKUP result` are also static to help distinction and further filtering by domain or client.  
+拒否判定の際の統計をログからより簡単に抽出出来るために、`LOOKUP`という単語を含んでいる。  
 更に、`LOOKUP stats`や`LOOKUP result`の表示は固定されていて、ドメインやクライアント毎にフィルターしやすくなっている。
 
 The `LOOKUP stats` explain what the client has been doing recently. In this example :
