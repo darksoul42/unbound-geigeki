@@ -335,7 +335,7 @@ The `LOOKUP result` indicates the four decision factors we use :
 info: ASN-DDoS-geigeki: ignored <CLIENT> <HOST.DOMAIN.TLD> (<DOMAIN.TLD>) A IN
 ```
 
-In DEBUG mode, it will be displayed like this.
+In DEBUG mode, it will be displayed like this.  
 DEBUGモードでは、下記の表示になる：
 ```
 info: <CLIENT> <HOST.DOMAIN.TLD> A IN
