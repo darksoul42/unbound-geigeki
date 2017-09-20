@@ -13,6 +13,7 @@ import sys
 import time
 import ipaddress
 
+PYTHON3 = (sys.version_info > (3, 0))
 DEBUG = False
 GEIGEKI_HEADER = "ASN-DDoS-geigeki: "
 
@@ -104,12 +105,15 @@ IPV6_PREFIXES_MAP = dict([
 #                            ("<IPV6_ADDRESS_SPACE>", 64),
                          ])
 # Convert the contents of the map in actuall IPv6Network objects
-IPV6_PREFIXES_MAP = { ipaddress.ip_network(key.decode("utf-8")): value for (key, value) in IPV6_PREFIXES_MAP.iteritems() }
+if PYTHON3:
+    IPV6_PREFIXES_MAP = { ipaddress.ip_network(key): value for (key, value) in IPV6_PREFIXES_MAP.items() }
+else:
+    IPV6_PREFIXES_MAP = { ipaddress.ip_network(key.decode("utf-8")): value for (key, value) in IPV6_PREFIXES_MAP.items() }
 IPV6_DEFAULT_PREFIXLEN = 64
 
 def canonicalize_ipv6_client(client):
-    client_addr = ipaddress.ip_address(client.decode("utf-8"))
-    for network, usermask in IPV6_PREFIXES_MAP.iteritems():
+    client_addr = ipaddress.ip_address(client) if PYTHON3 else ipaddress.ip_address(client.decode("utf-8"))
+    for network, usermask in IPV6_PREFIXES_MAP.items():
         if client_addr in network:
             client_user_network = ipaddress.ip_network((client_addr, usermask), False)
             return str(client_user_network)
@@ -142,7 +146,7 @@ def increment_counter(dictionary, key, index, count):
 
 def decrement_counter(dictionary, get_values, purge):
         purge = []
-        for key, data in dictionary.iteritems():
+        for key, data in dictionary.items():
                 (thresholds, decrements, minimums) = get_values(key)
                 data = [decrement_elem(elem, threshold, decrement, minimum, purge) for elem, threshold, decrement, minimum in zip(data, thresholds, decrements, minimums)]
                 if all(x == 0 for x in data): # Ready for deletion
@@ -352,7 +356,7 @@ def init(id, cfg):
         aaaa_filter_check_result = None
         try:
                 aaaa_filter_check_result = (cfg.aaaa_filter > 0)
-        except AttributeError, err:
+        except AttributeError as err:
                 pass
         log_info(GEIGEKI_HEADER + "Presence of AAAA filter patch : %s" % aaaa_filter_check_result)
         if aaaa_filter_check_result:
@@ -441,7 +445,7 @@ def allow_query(qinfo, delegation, delegation_name, client):
         result = None
         try:
                 result = mod_env[1].lookup(client, delegation_name, qinfo.qtype_str, usable_servers)
-        except Exception, err:
+        except Exception as err:
                 verbose(VERB_ALGO, GEIGEKI_HEADER + traceback.format_exc())
         return result
 
