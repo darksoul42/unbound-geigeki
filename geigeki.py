@@ -12,10 +12,34 @@ import traceback
 import sys
 import time
 import ipaddress
+import json
+import yaml
 
 PYTHON3 = (sys.version_info > (3, 0))
 DEBUG = False
 GEIGEKI_HEADER = "ASN-DDoS-geigeki: "
+GEIGEKI_INTERNAL_QUERY_TLD = "geigeki."
+GEIGEKI_INTERNAL_QUERY_ALLOWED = [ "127.0.0.1", "::1" ]
+GEIGEKI_VERSION_QUERY = "version." + GEIGEKI_INTERNAL_QUERY_TLD
+GEIGEKI_VERSION = "$Id$"
+GEIGEKI_STATS_QUERY = "stats." + GEIGEKI_INTERNAL_QUERY_TLD
+GEIGEKI_COUNT_QUERY = "count." + GEIGEKI_INTERNAL_QUERY_TLD
+GEIGEKI_START_QUERY = "start." + GEIGEKI_INTERNAL_QUERY_TLD
+
+# This should load configuration from the module path
+GEIGEKI_CONFIG_FILES = ["geigeki.yml", "/etc/unbound/geigeki.yml", "/usr/local/etc/unbound/geigeki.yml", "/var/unbound/etc/geigeki.yml"]
+
+geigeki_config = None
+for config_file in GEIGEKI_CONFIG_FILES:
+        try:
+                geigeki_config_file = open(config_file, 'r')
+                geigeki_config = yaml.load(geigeki_config_file, Loader=yaml.SafeLoader)
+        except Exception as err:
+                log_info(GEIGEKI_HEADER + "Failed opening configuration file '%s': " % config_file + traceback.format_exc())
+        if geigeki_config is not None:
+                log_info(GEIGEKI_HEADER + "Acquired configuration from external file '%s'" % config_file)
+#               verbose(VERB_ALGO, GEIGEKI_HEADER + "CONFIG: %s" % geigeki_config)
+                break
 
 THRESHOLD_TIME = 300
 PURGE_DELAY = 60
@@ -63,7 +87,6 @@ DDOS_CLIENTDOMAIN_DECREMENTS = [float(x) * PURGE_DELAY / THRESHOLD_TIME for x in
 DDOS_DOMAIN_DECREMENTS = [float(x) * PURGE_DELAY / THRESHOLD_TIME for x in DDOS_DOMAIN_THRESHOLDS]
 #DDOS_AUTHORITATIVE_DECREMENTS = [float(x) * PURGE_DELAY / THRESHOLD_TIME for x in DDOS_AUTHORITATIVE_THRESHOLDS]
 
-# TODO: Eventually put this in a file of its own
 # Basically only put here :
 # - Antivirus or security related domains
 # - Stuff that don't make "normal" use of DNS servers
@@ -98,12 +121,81 @@ DOMAIN_BURST_THRESHOLD = 150
 DOMAIN_BURST_DECREMENT = float(DOMAIN_BURST_THRESHOLD) * PURGE_DELAY / THRESHOLD_TIME
 DOMAIN_BURST_MINIMUM = 0
 
-# TODO: Eventually put this in a file of its own
 # Register here IPv6 prefixes which you own, and what prefix length you give to your users
 # This is especially intended for cases where networks larger than /64 are given out
 IPV6_PREFIXES_MAP = dict([
 #                            ("<IPV6_ADDRESS_SPACE>", 64),
                          ])
+
+# Override with local configuration if we loaded one
+if geigeki_config is not None:
+        if geigeki_config.get("internal_query_allowed") is not None:
+                GEIGEKI_INTERNAL_QUERY_ALLOWED = geigeki_config["internal_query_allowed"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("internal_query_allowed", GEIGEKI_INTERNAL_QUERY_ALLOWED))
+        if geigeki_config.get("threshold_time") is not None:
+                THRESHOLD_TIME = geigeki_config["threshold_time"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("threshold_time", THRESHOLD_TIME))
+        if geigeki_config.get("purge_delay") is not None:
+                PURGE_DELAY = geigeki_config["purge_delay"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("purge_delay", PURGE_DELAY))
+        if geigeki_config.get("domain_attack_threshold") is not None:
+                DOMAIN_ATTACK_THRESHOLD = geigeki_config["domain_attack_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("domain_attack_threshold", DOMAIN_ATTACK_THRESHOLD))
+        if geigeki_config.get("normal_threshold") is not None:
+                NORMAL_THRESHOLD = geigeki_config["normal_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("normal_threshold", NORMAL_THRESHOLD))
+        if geigeki_config.get("fail_threshold") is not None:
+                FAIL_THRESHOLD = geigeki_config["fail_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("fail_threshold", FAIL_THRESHOLD))
+        if geigeki_config.get("any_threshold") is not None:
+                ANY_THRESHOLD = geigeki_config["any_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("any_threshold", ANY_THRESHOLD))
+        if geigeki_config.get("rrset_threshold") is not None:
+                RRSET_THRESHOLD = geigeki_config["rrset_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("rrset_threshold", RRSET_THRESHOLD))
+        if geigeki_config.get("cname_threshold") is not None:
+                CNAME_THRESHOLD = geigeki_config["cname_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("cname_threshold", CNAME_THRESHOLD))
+        if geigeki_config.get("client_attack_threshold") is not None:
+                CLIENT_ATTACK_THRESHOLD = geigeki_config["client_attack_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("client_attack_threshold", CLIENT_ATTACK_THRESHOLD))
+        if geigeki_config.get("ddos_normal_threshold") is not None:
+                DDOS_NORMAL_THRESHOLD = geigeki_config["ddos_normal_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("ddos_normal_threshold", DDOS_NORMAL_THRESHOLD))
+        if geigeki_config.get("ddos_fail_threshold") is not None:
+                DDOS_FAIL_THRESHOLD = geigeki_config["ddos_fail_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("ddos_fail_threshold", DDOS_FAIL_THRESHOLD))
+        if geigeki_config.get("ddos_any_threshold") is not None:
+                DDOS_ANY_THRESHOLD = geigeki_config["ddos_any_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("ddos_any_threshold", DDOS_ANY_THRESHOLD))
+        if geigeki_config.get("ddos_rrset_threshold") is not None:
+                DDOS_RRSET_THRESHOLD = geigeki_config["ddos_rrset_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("ddos_rrset_threshold", DDOS_RRSET_THRESHOLD))
+        if geigeki_config.get("ddos_cname_threshold") is not None:
+                DDOS_CNAME_THRESHOLD = geigeki_config["ddos_cname_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("ddos_cname_threshold", DDOS_CNAME_THRESHOLD))
+        if geigeki_config.get("whitelist_domains") is not None:
+                WHITELIST_DOMAINS = geigeki_config["whitelist_domains"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("whitelist_domains", WHITELIST_DOMAINS))
+        if geigeki_config.get("whitelist_multiplier") is not None:
+                WHITELIST_MULTIPLIER = geigeki_config["whitelist_multiplier"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("whitelist_multiplier", WHITELIST_MULTIPLIER))
+        if geigeki_config.get("relative_meaning_threshold") is not None:
+                RELATIVE_MEANING_THRESHOLD = geigeki_config["relative_meaning_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("relative_meaning_threshold", RELATIVE_MEANING_THRESHOLD))
+        if geigeki_config.get("absolute_meaning_threshold") is not None:
+                ABSOLUTE_MEANING_THRESHOLD = geigeki_config["absolute_meaning_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("absolute_meaning_threshold", ABSOLUTE_MEANING_THRESHOLD))
+        if geigeki_config.get("domain_burst_threshold") is not None:
+                DOMAIN_BURST_THRESHOLD = geigeki_config["domain_burst_threshold"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("domain_burst_threshold", DOMAIN_BURST_THRESHOLD))
+        if geigeki_config.get("ipv6_prefixes") is not None:
+                IPV6_PREFIXES_MAP = geigeki_config["ipv6_prefixes"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("ipv6_prefixes", IPV6_PREFIXES_MAP))
+        if geigeki_config.get("ipv6_default_prefixlen") is not None:
+                IPV6_DEFAULT_PREFIXLEN = geigeki_config["ipv6_default_prefixlen"]
+                log_info(GEIGEKI_HEADER + "Local config overriding '%s': %s" % ("ipv6_default_prefixlen", IPV6_DEFAULT_PREFIXLEN))
+
 # Convert the contents of the map in actuall IPv6Network objects
 if PYTHON3:
     IPV6_PREFIXES_MAP = { ipaddress.ip_network(key): value for (key, value) in IPV6_PREFIXES_MAP.items() }
@@ -145,15 +237,15 @@ def increment_counter(dictionary, key, index, count):
         return data
 
 def decrement_counter(dictionary, get_values, purge):
-        purge = []
+        purge_target = []
         for key, data in dictionary.items():
                 (thresholds, decrements, minimums) = get_values(key)
                 data = [decrement_elem(elem, threshold, decrement, minimum, purge) for elem, threshold, decrement, minimum in zip(data, thresholds, decrements, minimums)]
                 if all(x == 0 for x in data): # Ready for deletion
-                        purge.append(key)
+                        purge_target.append(key)
                 else:
                         dictionary[key] = data
-        for x in purge:
+        for x in purge_target:
                 del dictionary[x]
 
 
@@ -184,6 +276,10 @@ class GeigekiDictionary(object):
                 self._domain_dict = {}
                 self._clientdomain_dict = {}
                 self._domain_burst_dict = {}
+                # Counters
+                self._allowed_queries = 0
+                self._rejected_queries = 0
+                self._ignored_queries = 0
 
         def set_ignore_aaaa_records(self, ignore_aaaa=True):
                 self._aaaa_ignore = ignore_aaaa
@@ -213,17 +309,23 @@ class GeigekiDictionary(object):
                         self._created = now
                         verbose(VERB_ALGO, GEIGEKI_HEADER + "REINIT: Executing total reinitialization of dictionaries")
                         self.decrement_counters(purge=1)
+                        self._allowed_queries = 0
+                        self._rejected_queries = 0
+                        self._ignored_queries = 0
                 elif now > (self._created + PURGE_DELAY):
                         self._created = now
                         verbose(VERB_ALGO, GEIGEKI_HEADER + "PURGE: Executing decrement of dictionaries")
                         self.decrement_counters(purge=0)
+                        self._allowed_queries = 0
+                        self._rejected_queries = 0
+                        self._ignored_queries = 0
 
         def lookup(self, client, domain, qtype, authoritatives):
                 # Check if we need to purge or reinitialize
                 self.reinitialize_or_purge()
 
                 # Ignore AAAA queries lookups (for increments) if we are using a AAAA filter, they would just mess up numbers
-                if self._aaaa_ignore and qtype == "AAAA":
+                if self._aaaa_ignore and qtype == RR_TYPE_AAAA:
                         # Just get latest data arrays from dictionaries
                         (client_data, domain_data, clientdomain_data) = self.get_counters(client, domain)
                 else:
@@ -234,7 +336,7 @@ class GeigekiDictionary(object):
                 clientdomain_thresholds = CLIENTDOMAIN_THRESHOLDS
                 ddos_domain_thresholds = DDOS_DOMAIN_THRESHOLDS
                 ddos_clientdomain_thresholds = DDOS_CLIENTDOMAIN_THRESHOLDS
-                if domain in WHITELIST_DOMAINS or qtype == "PTR":
+                if domain in WHITELIST_DOMAINS or qtype == RR_TYPE_PTR:
                         clientdomain_thresholds = WHITELIST_CLIENTDOMAIN_THRESHOLDS
                         ddos_domain_thresholds = WHITELIST_DDOS_DOMAIN_THRESHOLDS
                         ddos_clientdomain_thresholds = WHITELIST_DDOS_CLIENTDOMAIN_THRESHOLDS
@@ -350,6 +452,16 @@ class GeigekiDictionary(object):
                 self.increment_counters(client, domain, CNAME_COUNT_INDEX, count=cnames)
                 return True
 
+        def get_dict_statistics(self):
+                with self._lock:
+                        return [len(x) for x in [self._client_dict, self._domain_dict, self._clientdomain_dict]]
+
+        def get_policy_statistics(self):
+                return [self._allowed_queries, self._rejected_queries, self._ignored_queries]
+
+        def get_dictionary_start_time(self):
+                return self._created
+
 def init(id, cfg):
         global mod_env
         log_info(GEIGEKI_HEADER + "init called, module id is %d, port: %d, script: '%s'" % (id, cfg.port, cfg.python_script))
@@ -383,9 +495,9 @@ def init(id, cfg):
         log_info(GEIGEKI_HEADER + "Rejection holding threshold/decrement :")
         log_info(GEIGEKI_HEADER + "- DOMAIN_BURST_THRESHOLD : %s" % DOMAIN_BURST_THRESHOLD)
         log_info(GEIGEKI_HEADER + "- DOMAIN_BURST_DECREMENT : %s" % DOMAIN_BURST_DECREMENT)
+        log_info(GEIGEKI_HEADER + "IPv6 prefix special configurations : %s" % IPV6_PREFIXES_MAP)
 
         mod_env = []
-#        mod_env.append(ThreadSafeSocketPool(cfg.num_threads))
         mod_env.append(None) # This would be where we'd put the communication interface
         mod_env.append(GeigekiDictionary(ignore_aaaa=aaaa_filter_check_result))
         return True
@@ -439,12 +551,12 @@ def allow_query(qinfo, delegation, delegation_name, client):
         if len(usable_servers) == 0: # Maybe we got non resolvable authoritative NSes. Can be part of a DDoS countermeasure, whatever, throw it in to keep track of who is hammering a domain.
             usable_servers = usable_server_names
 
-        if qinfo.qtype_str == "ANY": # ANY queries increment a counter of their own.
+        if qinfo.qtype == RR_TYPE_ANY: # ANY queries increment a counter of their own.
                 mod_env[1].count_any_query(client, delegation_name)
 
         result = None
         try:
-                result = mod_env[1].lookup(client, delegation_name, qinfo.qtype_str, usable_servers)
+                result = mod_env[1].lookup(client, delegation_name, qinfo.qtype, usable_servers)
         except Exception as err:
                 verbose(VERB_ALGO, GEIGEKI_HEADER + traceback.format_exc())
         return result
@@ -459,12 +571,49 @@ def operate(id, event, qstate, qdata):
             if qstate.mesh_info.reply_list.query_reply.family == "ip6":
                 client = canonicalize_ipv6_client(client)
 
-        delegation = find_delegation(qstate, qstate.qinfo.qname, len(qstate.qinfo.qname))
+        delegation = None
+        if PYTHON3:
+            delegation = find_delegation(qstate, qstate.qinfo.qname.decode("utf-8"), len(qstate.qinfo.qname))
+        else:
+            delegation = find_delegation(qstate, qstate.qinfo.qname, len(qstate.qinfo.qname))
+
         delegation_name = "<NONE>"
         if (delegation is not None):
                 delegation_name = delegation.dname_str.lower()
 
         if (event == MODULE_EVENT_NEW) or (event == MODULE_EVENT_PASS):
+                # For a TXT CHAOS query to *.geigeki.
+                # Return the defined answer and do not process anything else
+                if qstate.mesh_info.reply_list.query_reply.addr in GEIGEKI_INTERNAL_QUERY_ALLOWED and qstate.qinfo.qclass == RR_CLASS_CH and qstate.qinfo.qtype in (RR_TYPE_TXT, RR_TYPE_ANY) and qstate.qinfo.qname_str.endswith(GEIGEKI_INTERNAL_QUERY_TLD):
+                        log_info(GEIGEKI_HEADER + "internal query received %s %s %s %s" % (qstate.mesh_info.reply_list.query_reply.addr, qstate.qinfo.qname_str, qstate.qinfo.qtype_str, qstate.qinfo.qclass_str))
+                        reply = DNSMessage(qstate.qinfo.qname_str, RR_TYPE_TXT, RR_CLASS_CH, PKT_AA | PKT_QR)
+
+                        qstate.return_rcode = RCODE_NOERROR
+
+                        answer = None
+                        if qstate.qinfo.qname_str == GEIGEKI_VERSION_QUERY:
+                                answer = GEIGEKI_VERSION
+                        if qstate.qinfo.qname_str == GEIGEKI_STATS_QUERY:
+                                answer = ",".join([str(x) for x in mod_env[1].get_dict_statistics()])
+                        if qstate.qinfo.qname_str == GEIGEKI_COUNT_QUERY:
+                                answer = ",".join([str(x) for x in mod_env[1].get_policy_statistics()])
+                        if qstate.qinfo.qname_str == GEIGEKI_START_QUERY:
+                                answer = mod_env[1].get_dictionary_start_time()
+
+                        if answer is not None:
+                                reply.answer.append("%s 300 CH TXT \"%s\"" % (qstate.qinfo.qname_str, answer))
+                                if not reply.set_return_msg(qstate):
+                                        qstate.ext_state[id] = MODULE_ERROR
+                                        return True
+                        else:
+                                qstate.return_rcode = RCODE_NXDOMAIN
+                                qstate.ext_state[id] = MODULE_ERROR
+                                return True
+
+                        qstate.ext_state[id] = MODULE_FINISHED
+                        return True
+
+                # Any other query, process with a lookup according to policy
                 policy_result = allow_query(qstate.qinfo, delegation, delegation_name, client)
 
                 if (delegation is not None):
